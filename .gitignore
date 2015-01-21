@@ -1,2 +1,5 @@
 #Sublime Text Stino Setting File
 stino.settings
+
+#Node.js Packages
+node_modules
