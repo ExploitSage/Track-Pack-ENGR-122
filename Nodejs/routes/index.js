@@ -5,12 +5,14 @@ var fs = require("fs");
 var key = "password1"; //worst Password EVER
 
 /*
-fs.writeFile( "./dish.json", JSON.stringify( {lat:0,lon:0} ), "utf8", function(err) {
+fs.writeFile( "./dish.json", JSON.stringify( {lat:0,lon:0} 
+), "utf8", function(err) {
   console.log(err);
   if(err) throw err;
   console.log('saved');
 });
-fs.writeFile( "./user.json", JSON.stringify( {lat:0,lon:0} ), "utf8", function(err) {
+fs.writeFile( "./user.json", JSON.stringify( {lat:0,lon:0} 
+), "utf8", function(err) {
   console.log(err);
   if(err) throw err;
   console.log('saved');
