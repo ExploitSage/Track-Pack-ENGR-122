@@ -19,13 +19,19 @@ google.maps.event.addDomListener(window, 'load', function() {
 	dish_marker = new google.maps.Marker({
 		position: dishCoords,
 		map: map,
+		draggable:true,
 		title:"Dish"
 	});
 
-	//Drag Adjust
+	//Drag Adjust Events
 	google.maps.event.addListener(user_marker, 'mouseup', function() {
 		$.getJSON('http://wifi.gustavemichel.com/api/user/password1/'+user_marker.position.k+','+user_marker.position.D, function(json_data){
 			dish_marker.setPosition(new google.maps.LatLng(json_data.lat,json_data.lon));
+		});
+	});
+	google.maps.event.addListener(dish_marker, 'mouseup', function() {
+		$.getJSON('http://wifi.gustavemichel.com/api/dish/password1/'+user_marker.position.k+'/'+user_marker.position.D, function(json_data){
+			user_marker.setPosition(new google.maps.LatLng(json_data.lat,json_data.lon));
 		});
 	});
 });
