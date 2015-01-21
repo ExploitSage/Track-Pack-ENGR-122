@@ -36,5 +36,5 @@ window.setInterval(function() {
 
 //Drag Adjust
 google.maps.event.addListener(user_marker, 'mouseup', function() {
-	console.log(user_marker.position);
+	console.log(user_marker);
 });
