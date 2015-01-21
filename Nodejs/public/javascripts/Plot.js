@@ -1,6 +1,3 @@
-var user_marker;
-var dish_marker;
-
 google.maps.event.addDomListener(window, 'load', function() {
 	var userCoords = new google.maps.LatLng(user.lat,user.lon);
 	var dishCoords = new google.maps.LatLng(dish.lat,dish.lon);
@@ -24,6 +21,11 @@ google.maps.event.addDomListener(window, 'load', function() {
 		map: map,
 		title:"Dish"
 	});
+
+	//Drag Adjust
+	google.maps.event.addListener(user_marker, 'mouseup', function() {
+		console.log(user_marker);
+	});
 });
 
 //Update
@@ -36,8 +38,3 @@ window.setInterval(function() {
 		user_marker.setPosition(new google.maps.LatLng(json_data.lat,json_data.lon));
 	});
 }, 2500);
-
-//Drag Adjust
-google.maps.event.addListener(user_marker, 'mouseup', function() {
-	console.log(user_marker);
-});
