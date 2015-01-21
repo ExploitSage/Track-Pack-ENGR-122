@@ -33,3 +33,8 @@ window.setInterval(function() {
 		user_marker.setPosition(new google.maps.LatLng(json_data.lat,json_data.lon));
 	});
 }, 2500);
+
+//Drag Adjust
+google.maps.event.addListener(user_marker, 'mouseup', function() {
+	console.log(user_marker.position);
+});
