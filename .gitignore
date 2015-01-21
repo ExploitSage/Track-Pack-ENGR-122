@@ -3,3 +3,7 @@ stino.settings
 
 #Node.js Packages
 node_modules
+
+#Node.js Datafiles
+user.json
+dish.json
