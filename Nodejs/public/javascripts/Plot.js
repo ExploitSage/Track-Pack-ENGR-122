@@ -13,6 +13,7 @@ google.maps.event.addDomListener(window, 'load', function() {
 	user_marker = new google.maps.Marker({
 		position: userCoords,
 		map: map,
+		draggable:true,
 		title:"User"
 	});
 	dish_marker = new google.maps.Marker({
@@ -26,6 +27,7 @@ google.maps.event.addDomListener(window, 'load', function() {
 window.setInterval(function() {
 	$.getJSON('http://wifi.gustavemichel.com/api/dish/password1', function(json_data){
 		dish_marker.setPosition(new google.maps.LatLng(json_data.lat,json_data.lon));
+		console.log(dish_marker);
 	});
 	$.getJSON('http://wifi.gustavemichel.com/api/user/password1', function(json_data){
 		user_marker.setPosition(new google.maps.LatLng(json_data.lat,json_data.lon));
