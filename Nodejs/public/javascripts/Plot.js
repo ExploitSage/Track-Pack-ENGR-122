@@ -24,7 +24,9 @@ google.maps.event.addDomListener(window, 'load', function() {
 
 	//Drag Adjust
 	google.maps.event.addListener(user_marker, 'mouseup', function() {
-		console.log(user_marker);
+		$.getJSON('http://wifi.gustavemichel.com/api/user/password1/'+user_marker.position.k+','+user_marker.position.D, function(json_data){
+			dish_marker.setPosition(new google.maps.LatLng(json_data.lat,json_data.lon));
+		});
 	});
 });
 
