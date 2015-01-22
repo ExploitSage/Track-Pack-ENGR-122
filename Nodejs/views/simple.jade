@@ -1,0 +1,34 @@
+extends layout
+
+block content
+	div.container
+		h1 User
+		div.row
+			div.col-xs-2.col-sm-1
+				| lat
+			div.col-xs-10.col-sm-11
+				input(type='text', name='', value = '0')#user_lat
+		div.row
+			div.col-xs-2.col-sm-1
+				| lon
+			div.col-xs-10.col-sm-11
+				input(type='text', name='', value = '0')#user_lon
+		h1 Dish
+		div.row
+			div.col-xs-2.col-sm-1
+				| lat
+			div.col-xs-10.col-sm-11
+				input(type='text', name='', value = '0')#dish_lat
+		div.row
+			div.col-xs-2.col-sm-1
+				| lon
+			div.col-xs-10.col-sm-11
+				input(type='text', name='', value = '0')#dish_lon
+		div.row
+			div.col-xs-2.col-sm-1
+			div.col-xs-10.col-sm-11
+				button(type="button")#submit.btn.btn-lg Submit
+
+	script(type="text/javascript" src="/javascripts/jquery-2.1.3.min.js")
+	script(type="text/javascript" src="/javascripts/SimpleInterface.js")
+	script(type="text/javascript" src="/javascripts/bootstrap.min.js")

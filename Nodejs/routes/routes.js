@@ -23,31 +23,35 @@ var dish_coords = JSON.parse(fs.readFileSync('./dish.json').toString());
 var user_coords = JSON.parse(fs.readFileSync('./user.json').toString());
 console.log(dish_coords);
 console.log(user_coords);
-/*
-fs.readFile('./dish.json', function(err, buf) {
-  console.log(buf.toString());
-  if(err) throw err;
-  dish_coords = JSON.parse(buf.toString());
-});
-fs.readFile('./user.json', function(err, buf) {
-  console.log(buf.toString());
-  if(err) throw err;
-  user_coords = JSON.parse(buf.toString());
-});
-*/
 
-/* GET home page. */
+/* GET error home page. */
 router.get('/', function(req, res) {
-  //if(req.params.key == key) {
-    res.render('index', { title: 'GPS Wifi Targeting System (GWTS)', user: user_coords, dish: dish_coords});
-  //} else {
-  //  res.status(404).send('Incorrect Key');
-  //}
-  
+  res.status(404).render('error', {message: 'Access not Authorized', error: {status:"No Key Specified",stack:"Please Specify your key."}});
+});
+/* GET error home page. */
+router.get('/simple', function(req, res) {
+  res.status(404).render('error', {message: 'Access not Authorized', error: {status:"No Key Specified",stack:"Please Specify your key."}});
+});
+
+/* GET home page. Map Interface */
+router.get('/:key', function(req, res) {
+  if(req.params.key == key) {
+    res.render('map', { title: 'GPS Wifi Targeting System (GWTS)', user: user_coords, dish: dish_coords});
+  } else {
+    res.status(404).render('error', {message: 'Access not Authorized', error: {status:"Incorrect Key Specified",stack:"Please Specify correct key."}});
+  }
+});
+/* Get home page. Simple Interface */
+router.get('/simple/:key', function(req, res) {
+  if(req.params.key == key) {
+    res.render('simple', { title: 'GPS Wifi Targeting System (GWTS)', user: user_coords, dish: dish_coords});
+  } else {
+    res.status(404).render('error', {message: 'Access not Authorized', error: {status:"Incorrect Key Specified",stack:"Please Specify correct key."}});
+  }
 });
 
 /* GET API Dish listing. */
-router.get('/api/dish/:key/:lat/:lon/', function(req, res) {
+router.get('/api/dish/:key/:lat/:lon', function(req, res) {
   if(req.params.key == key && (!isNaN(req.params.lat) && !isNaN(req.params.lon))) {
   	dish_coords.lat = Number(req.params.lat);
   	dish_coords.lon = Number(req.params.lon);

@@ -25,22 +25,21 @@ google.maps.event.addDomListener(window, 'load', function() {
 
 	//Drag Adjust Events
 	google.maps.event.addListener(user_marker, 'mouseup', function() {
-		$.getJSON('http://wifi.gustavemichel.com/api/user/password1/'+user_marker.position.k+','+user_marker.position.D, function(json_data){
+		$.getJSON('/api/user/password1/'+user_marker.position.k+','+user_marker.position.D, function(json_data){
 			dish_marker.setPosition(new google.maps.LatLng(json_data.lat,json_data.lon));
 		});
 	});
 	google.maps.event.addListener(dish_marker, 'mouseup', function() {
-		$.getJSON('http://wifi.gustavemichel.com/api/dish/password1/'+dish_marker.position.k+'/'+dish_marker.position.D, function(json_data){
+		$.getJSON('/api/dish/password1/'+dish_marker.position.k+'/'+dish_marker.position.D, function(json_data){
 			user_marker.setPosition(new google.maps.LatLng(json_data.lat,json_data.lon));
 		});
 	});
 	//Update
 	update = setInterval(function() {
-		$.getJSON('http://wifi.gustavemichel.com/api/dish/password1', function(json_data){
+		$.getJSON('/api/dish/password1', function(json_data){
 			dish_marker.setPosition(new google.maps.LatLng(json_data.lat,json_data.lon));
-			console.log(dish_marker);
 		});
-		$.getJSON('http://wifi.gustavemichel.com/api/user/password1', function(json_data){
+		$.getJSON('/api/user/password1', function(json_data){
 			user_marker.setPosition(new google.maps.LatLng(json_data.lat,json_data.lon));
 		});
 	}, 2500);
