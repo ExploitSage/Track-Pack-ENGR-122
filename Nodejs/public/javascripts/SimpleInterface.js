@@ -1,4 +1,5 @@
 var key = "password1";
+
 var numeric_error = false;
 var last_user;
 var last_dish;
@@ -6,12 +7,12 @@ $(document).ready(function() {
 	$( "#submit" ).addClass('btn-warning'); //loading
 
 	//Set Values
-	$.getJSON('/api/dish/password1', function(json_data){
+	$.getJSON('/api/dish/'+key, function(json_data){
 		last_dish = json_data;
 		$( "#dish_lat" ).val(json_data.lat);
 		$( "#dish_lon" ).val(json_data.lon);
 	});
-	$.getJSON('/api/user/password1', function(json_data){
+	$.getJSON('/api/user/'+key, function(json_data){
 		last_user = json_data;
 		$( "#user_lat" ).val(json_data.lat);
 		$( "#user_lon" ).val(json_data.lon);
@@ -19,14 +20,14 @@ $(document).ready(function() {
 
 	//update checker
 	setInterval(function() {
-		$.getJSON('/api/dish/password1', function(json_data){
+		$.getJSON('/api/dish/'+key, function(json_data){
 			if(json_data.lat != last_dish.lat || json_data.lon != last_dish.lon) {
 				last_dish = json_data;
 				$( "#dish_lat" ).val(json_data.lat);
 				$( "#dish_lon" ).val(json_data.lon);
 			}
 		});
-		$.getJSON('/api/user/password1', function(json_data){
+		$.getJSON('/api/user/'+key, function(json_data){
 			if(json_data.lat != last_user.lat || json_data.lon != last_user.lon) {
 				last_user = json_data;
 				$( "#user_lat" ).val(json_data.lat);
@@ -38,10 +39,10 @@ $(document).ready(function() {
 	//Hook Submit
 	$( "#submit" ).click(function() {
 		if(!numeric_error) {
-			$.getJSON('/api/user/password1/'+$( "#user_lat" ).val()+','+$( "#user_lon" ).val(), function(json_data){
+			$.getJSON('/api/user/'+key+'/'+$( "#user_lat" ).val()+','+$( "#user_lon" ).val(), function(json_data){
 			
 			});
-			$.getJSON('/api/dish/password1/'+$( "#dish_lat" ).val()+'/'+$( "#dish_lon" ).val(), function(json_data){
+			$.getJSON('/api/dish/'+key+'/'+$( "#dish_lat" ).val()+'/'+$( "#dish_lon" ).val(), function(json_data){
 				
 			});
 			$( "#submit" ).removeClass('btn-primary').addClass('btn-success');
