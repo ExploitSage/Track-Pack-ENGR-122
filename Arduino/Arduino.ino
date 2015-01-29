@@ -30,6 +30,8 @@
 	#include "HMC5883L.h"
 
 // Contant Declarations
+#define CW_Switch 2
+#define CCW_Switch 3
 #define key "password1"
 
 //char server[] = "wifi.gustavemichel.com"; // Port 80
@@ -50,10 +52,16 @@ const unsigned long postingInterval = 6000;		// delay between updates, in millis
 
 
 void setup() {
-	// start serial port:
+	//Start Serial
 	Serial.begin(9600);
 
-	//Setup Compass
+	//Start Limit Switches
+	pinMode(CW_Switch, INPUT_PULLUP);
+	pinMode(CCW_Switch, INPUT_PULLUP);
+	attachInterrupt(0, CWSwitch, FALLING);
+	attachInterrupt(1, CCWSwitch, FALLING);
+
+	//Start Compass
 	Wire.begin();
 	compass = HMC5883L(); 
 	compass.SetScale(1.3); 
@@ -77,7 +85,7 @@ void loop() {
 		Serial.print(c);
 	}
 
-	if(!client.connected()) { //If no Stuff, are we connected?
+	if(!client.connected()) { //Are we connected?
 		if(lastConnected) { // We were connected, no more.
 			Serial.println();
 			Serial.println("disconnecting.");
@@ -142,4 +150,13 @@ void readMagnetometer() {
 	xDegrees = xHeading * 180/M_PI; //Convert to degrees
 	yDegrees = yHeading * 180/M_PI; 
 	zDegrees = zHeading * 180/M_PI; 
+}
+
+//Direction Switch Functions (To prevent wire tangle)
+void CWSwitch() {
+
+}
+
+void CCWSwitch() {
+
 }
