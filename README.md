@@ -1,7 +1,7 @@
 # Wifi Tracker Pack  
 ## Freshman Engineering Design Project  
 
-### Designers  
+### Inventors 
 - Nathan Slaughter
 	* Project/Team Management
 - Gustave Michel III
