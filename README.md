@@ -3,10 +3,10 @@
 
 ### Designers  
 - Gustave Michel III
--- Programming
+..* Programming
 - Joey Higuera
--- Design
+..* Design
 - Jordan Lofton
--- Design
+..* Design
 - Nathan Slaughter
--- Project/Team Management
+..* Project/Team Management
