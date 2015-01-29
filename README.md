@@ -3,7 +3,7 @@
 
 ### Designers  
 - Gustave Michel III
-..* Programming
+--* Programming
 - Joey Higuera
 ..* Design
 - Jordan Lofton
