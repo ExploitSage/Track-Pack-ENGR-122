@@ -39,15 +39,14 @@ IPAddress server(10,10,10,1); // Port 4500
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }; //DEADBEEF because WHY NOT!
 IPAddress ip(10,10,10,2); //default
 
+// Variable/Object Declarations
 EthernetClient client;
 HMC5883L compass;
+float xDegrees, yDegrees, zDegrees;
 
 unsigned long lastConnectionTime = 0;			// last time you connected to the server, in milliseconds
 boolean lastConnected = false;					// state of the connection last time through the main loop
 const unsigned long postingInterval = 6000;		// delay between updates, in milliseconds
-
-// Variable/Object Declarations
-
 
 
 void setup() {
@@ -90,31 +89,12 @@ void loop() {
 	}
 	lastConnected = client.connected(); //store state for next iteration
 
-	MagnetometerRaw raw = compass.ReadRawAxis(); //Read Data
-	MagnetometerScaled scaled = compass.ReadScaledAxis(); 
-	float xHeading = atan2(scaled.YAxis, scaled.XAxis); //Calculate Heading
-	float yHeading = atan2(scaled.ZAxis, scaled.XAxis); 
-	float zHeading = atan2(scaled.ZAxis, scaled.YAxis); 
-	if(xHeading < 0) 	//Heading Calibration
-		xHeading += 2*PI;
-	if(xHeading > 2*PI) 
-		xHeading -= 2*PI; 
-	if(yHeading < 0) 
-		yHeading += 2*PI; 
-	if(yHeading > 2*PI) 
-		yHeading -= 2*PI; 
-	if(zHeading < 0) 
-		zHeading += 2*PI; 
-	if(zHeading > 2*PI) 
-		zHeading -= 2*PI; 
-	float xDegrees = xHeading * 180/M_PI; //Convert to degrees
-	float yDegrees = yHeading * 180/M_PI; 
-	float zDegrees = zHeading * 180/M_PI; 
-	Serial.print(xDegrees);  //print degrees
-	//Serial.print(","); 
-	//Serial.print(yDegrees); 
-	//Serial.print(","); 
-	//Serial.print(zDegrees); 
+	readMagnetometer();		//Update Magetometer Values
+	Serial.print(xDegrees);	//print values
+	Serial.print(","); 
+	Serial.print(yDegrees); 
+	Serial.print(","); 
+	Serial.print(zDegrees); 
 	Serial.println(";"); 
 	delay(100);
 }
@@ -139,4 +119,27 @@ void httpRequest() {
 		Serial.println("disconnecting.");
 		client.stop();
 	}
+}
+
+void readMagnetometer() {
+	MagnetometerRaw raw = compass.ReadRawAxis(); //Read Data
+	MagnetometerScaled scaled = compass.ReadScaledAxis(); 
+	float xHeading = atan2(scaled.YAxis, scaled.XAxis); //Calculate Heading
+	float yHeading = atan2(scaled.ZAxis, scaled.XAxis); 
+	float zHeading = atan2(scaled.ZAxis, scaled.YAxis); 
+	if(xHeading < 0) 	//Heading Calibration
+		xHeading += 2*PI;
+	if(xHeading > 2*PI) 
+		xHeading -= 2*PI; 
+	if(yHeading < 0) 
+		yHeading += 2*PI; 
+	if(yHeading > 2*PI) 
+		yHeading -= 2*PI; 
+	if(zHeading < 0) 
+		zHeading += 2*PI; 
+	if(zHeading > 2*PI) 
+		zHeading -= 2*PI; 
+	xDegrees = xHeading * 180/M_PI; //Convert to degrees
+	yDegrees = yHeading * 180/M_PI; 
+	zDegrees = zHeading * 180/M_PI; 
 }
