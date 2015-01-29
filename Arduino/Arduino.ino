@@ -154,9 +154,9 @@ void readMagnetometer() {
 
 //Direction Switch Functions (To prevent wire tangle)
 void CWSwitch() {
-
+	Serial.println("Reached Clockwise Limit");
 }
 
 void CCWSwitch() {
-
+	Serial.println("Reached Counter-Clockwise Limit");
 }
