@@ -2,11 +2,11 @@
 ## Freshman Engineering Design Project  
 
 ### Designers  
-- Gustave Michel III
---* Programming
-- Joey Higuera
-..* Design
-- Jordan Lofton
-..* Design
 - Nathan Slaughter
-..* Project/Team Management
+⋅⋅* Project/Team Management
+- Gustave Michel III
+⋅⋅* Programming
+- Joey Higuera
+⋅⋅* Design
+- Jordan Lofton
+⋅⋅* Design
