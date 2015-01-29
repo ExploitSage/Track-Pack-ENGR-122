@@ -34,14 +34,21 @@
 #define CCW_Switch 3
 #define key "password1"
 
-//char server[] = "wifi.gustavemichel.com"; // Port 80
-//char server[] = "gustave.me"; // Port 4500
-IPAddress server(10,10,10,1); // Port 4500
+//char server[] = "wifi.gustavemichel.com";
+// int port 80
+//char server[] = "gustave.me";
+// int port 4500
+IPAddress server(10,10,10,1);
+int port 4500
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }; //DEADBEEF because WHY NOT!
 IPAddress ip(10,10,10,2); //default
 
 // Variable/Object Declarations
+struct Coords {
+	double lat;
+	double lon;
+} dish_coords, user_coords;
 EthernetClient client;
 HMC5883L compass;
 float xDegrees, yDegrees, zDegrees;
@@ -56,6 +63,8 @@ void setup() {
 	Serial.begin(9600);
 
 	//Start Limit Switches
+	pinMode(13, OUTPUT);
+	digitalWrite(13, LOW);
 	pinMode(CW_Switch, INPUT_PULLUP);
 	pinMode(CCW_Switch, INPUT_PULLUP);
 	attachInterrupt(0, CWSwitch, FALLING);
@@ -77,6 +86,7 @@ void setup() {
 	// print the Ethernet board/shield's IP address:
 	Serial.print("My IP address: ");
 	Serial.println(Ethernet.localIP());
+
 }
 
 void loop() {
@@ -110,7 +120,7 @@ void loop() {
 
 // this function makes a HTTP connection to the server:
 void httpRequest() {
-	if (client.connect(server, 4500)) { // Successful connection?
+	if (client.connect(server, port)) { // Successful connection?
 		Serial.println("connecting...");
 		// send the HTTP PUT request:
 		client.println("GET /api/dish/password1");
@@ -154,9 +164,9 @@ void readMagnetometer() {
 
 //Direction Switch Functions (To prevent wire tangle)
 void CWSwitch() {
-	Serial.println("Reached Clockwise Limit");
+	digitalWrite(13, HIGH);
 }
 
 void CCWSwitch() {
-	Serial.println("Reached Counter-Clockwise Limit");
+	digitalWrite(13, LOW);
 }
