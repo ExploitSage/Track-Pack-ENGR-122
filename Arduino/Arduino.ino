@@ -1,4 +1,3 @@
-
 /*
  *	Engineering 122 Freshman Design Project Client
  *	Copyright (C) 2014	Gustave Abel Michel III
@@ -28,10 +27,13 @@
 	#include "Servo.h"
 // GY-217 Compass
 	#include "HMC5883L.h"
+// JSON Parser
 
 // Contant Declarations
 #define CW_Switch 2
 #define CCW_Switch 3
+#define USER true
+#define DISH false
 #define key "password1"
 
 //char server[] = "wifi.gustavemichel.com";
@@ -39,9 +41,9 @@
 //char server[] = "gustave.me";
 // int port 4500
 IPAddress server(10,10,10,1);
-int port 4500
+int port = 4500;
 
-byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }; //DEADBEEF because WHY NOT!
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }; // 0xDEADBEEFFEED because WHY NOT!
 IPAddress ip(10,10,10,2); //default
 
 // Variable/Object Declarations
@@ -49,14 +51,18 @@ struct Coords {
 	double lat;
 	double lon;
 } dish_coords, user_coords;
+struct Heading {
+	double radians;
+	double degrees;
+};
 EthernetClient client;
 HMC5883L compass;
-float xDegrees, yDegrees, zDegrees;
+double xDegrees, yDegrees, zDegrees;
+
 
 unsigned long lastConnectionTime = 0;			// last time you connected to the server, in milliseconds
 boolean lastConnected = false;					// state of the connection last time through the main loop
 const unsigned long postingInterval = 6000;		// delay between updates, in milliseconds
-
 
 void setup() {
 	//Start Serial
@@ -79,10 +85,10 @@ void setup() {
 	// give the ethernet module time to boot up:
 	delay(1000);
 	// start the Ethernet connection using a fixed IP address:
-	//if (Ethernet.begin(mac) == 0) { //attempt DHCP
+//	if (Ethernet.begin(mac) == 0) { //attempt DHCP
 		Serial.println("Failed to configure Ethernet using DHCP");
 		Ethernet.begin(mac, ip);
-	//}
+//	}
 	// print the Ethernet board/shield's IP address:
 	Serial.print("My IP address: ");
 	Serial.println(Ethernet.localIP());
@@ -90,62 +96,131 @@ void setup() {
 }
 
 void loop() {
-	while (client.available()) { //We have Stuff from Server
-		char c = client.read();
-		Serial.print(c);
-	}
+	//Is not connected and is time to reconnect
+	if((!client.connected()) && (millis() - lastConnectionTime > postingInterval)) {
+		if(httpRequest()) { //success
+			//Set angle
+			readMagnetometer();		//Update Magetometer Values
+			double corrected = 0;
+			if(yDegrees < 270)
+				corrected = yDegrees+90;
+			else {
+				corrected = yDegrees-270;
+			}
 
-	if(!client.connected()) { //Are we connected?
-		if(lastConnected) { // We were connected, no more.
-			Serial.println();
-			Serial.println("disconnecting.");
-			client.stop();
+			double angle = (atan2(user_coords.lat - dish_coords.lat,user_coords.lon - dish_coords.lon))*(180/M_PI);
+			if(angle < 0) {
+				angle+=360;
+			}
+			Serial.print("Mag Angle: ");
+			Serial.println(yDegrees,10);
+			Serial.print("Cor Angle: ");
+			Serial.println(corrected,10);
+			Serial.print("Pos Angle: ");
+			Serial.println(angle,10);
 		}
-		if(millis() - lastConnectionTime > postingInterval) { //Is it time to reconnect?
-			httpRequest();
-		}
+
 	}
-	lastConnected = client.connected(); //store state for next iteration
 
 	readMagnetometer();		//Update Magetometer Values
-	Serial.print(xDegrees);	//print values
-	Serial.print(","); 
-	Serial.print(yDegrees); 
-	Serial.print(","); 
-	Serial.print(zDegrees); 
-	Serial.println(";"); 
-	delay(100);
+	delay(1000);
 }
 
 
-// this function makes a HTTP connection to the server:
-void httpRequest() {
+// this function makes a HTTP connection to the server and parses the json it receives:
+int httpRequest() {
+	Serial.println("connecting...");
 	if (client.connect(server, port)) { // Successful connection?
-		Serial.println("connecting...");
+		// note the time that the connection was made:
+		lastConnectionTime = millis();
+
 		// send the HTTP PUT request:
 		client.println("GET /api/dish/password1");
 		client.println("Host: 10.10.10.2");
 		client.println("User-Agent: arduino-ethernet");
 		client.println("Connection: close");
 		client.println();
-
-		// note the time that the connection was made:
-		lastConnectionTime = millis();
-	} 
-	else { // No connection... :(
+	} else { // No connection... :(
 		Serial.println("connection failed");
 		Serial.println("disconnecting.");
 		client.stop();
+		return(0);
 	}
+	delay(100);
+	if(client.available()) {
+			parseJson(DISH); //Parse
+			Serial.println("disconnecting.");
+			client.stop();
+	}
+
+	Serial.println("connecting...");
+	if (client.connect(server, port)) { // Successful connection?
+		// note the time that the connection was made:
+		lastConnectionTime = millis();
+		Serial.println("connecting...");
+
+		// send the HTTP PUT request:
+		client.println("GET /api/user/password1");
+		client.println("Host: 10.10.10.2");
+		client.println("User-Agent: arduino-ethernet");
+		client.println("Connection: close");
+		client.println();
+	} else { // No connection... :(
+		Serial.println("connection failed");
+		Serial.println("disconnecting.");
+		client.stop();
+		return(0);
+	}
+	delay(100);
+	if(client.available()) {
+		parseJson(USER); //Parse
+		Serial.println("disconnecting.");
+		client.stop();
+	}
+
+	return(1);
 }
 
+void parseJson(bool user) {
+	bool foundJson = false;
+	int stringPos = 0; // string index counter
+	char inString[51]; // string for incoming serial data
+	memset( &inString, 0, 51 ); //clear inString memory
+
+	while(client.available()) {
+		char c = client.read();
+		if(c == '{')
+			foundJson = true;
+		if(foundJson) {
+			inString[stringPos] = c;
+			stringPos++;
+		}
+		if(c == '}')
+			break;
+	}
+
+	String RawJSON = String(inString);
+	char firstNumber[20];
+	RawJSON.substring(RawJSON.indexOf(':')+1,RawJSON.indexOf(',')).toCharArray(firstNumber, 20);
+	char secondNumber[20];
+	RawJSON.substring(RawJSON.indexOf(':',RawJSON.indexOf(':')+1)+1,RawJSON.indexOf('}')).toCharArray(secondNumber, 20);
+
+	if(user == DISH) {
+		dish_coords.lat = (double)atof(firstNumber);
+		dish_coords.lon = (double)atof(secondNumber);
+	}
+	if(user == USER) {
+		user_coords.lat = (double)atof(firstNumber);
+		user_coords.lon = (double)atof(secondNumber);
+	}
+}
 void readMagnetometer() {
 	MagnetometerRaw raw = compass.ReadRawAxis(); //Read Data
 	MagnetometerScaled scaled = compass.ReadScaledAxis(); 
-	float xHeading = atan2(scaled.YAxis, scaled.XAxis); //Calculate Heading
-	float yHeading = atan2(scaled.ZAxis, scaled.XAxis); 
-	float zHeading = atan2(scaled.ZAxis, scaled.YAxis); 
-	if(xHeading < 0) 	//Heading Calibration
+	double xHeading = atan2(scaled.YAxis, scaled.XAxis); //Calculate Heading
+	double yHeading = atan2(scaled.ZAxis, scaled.XAxis); 
+	double zHeading = atan2(scaled.ZAxis, scaled.YAxis); 
+	if(xHeading < 0) 	//for radians conversion?
 		xHeading += 2*PI;
 	if(xHeading > 2*PI) 
 		xHeading -= 2*PI; 
@@ -157,7 +232,8 @@ void readMagnetometer() {
 		zHeading += 2*PI; 
 	if(zHeading > 2*PI) 
 		zHeading -= 2*PI; 
-	xDegrees = xHeading * 180/M_PI; //Convert to degrees
+
+	xDegrees = xHeading * 180/M_PI; //Convert radians to degrees
 	yDegrees = yHeading * 180/M_PI; 
 	zDegrees = zHeading * 180/M_PI; 
 }
