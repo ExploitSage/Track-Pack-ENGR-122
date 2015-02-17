@@ -1,7 +1,7 @@
 # Track Pack  
-============
-	Long Range Wi-Fi
-	================
+  ==========
+# Long Range Wi-Fi
+  ================
 
 ## Freshman Engineering Design Project  
 
