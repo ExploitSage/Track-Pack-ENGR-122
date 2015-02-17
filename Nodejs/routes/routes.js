@@ -36,7 +36,7 @@ router.get('/simple', function(req, res) {
 /* GET home page. Map Interface */
 router.get('/:key', function(req, res) {
   if(req.params.key == key) {
-    res.render('map', { title: 'GPS Wifi Targeting System (GWTS)', user: user_coords, dish: dish_coords});
+    res.render('map', { title: 'Track Pack - Long Range Wi-Fi', user: user_coords, dish: dish_coords});
   } else {
     res.status(404).render('error', {message: 'Access not Authorized', error: {status:"Incorrect Key Specified",stack:"Please Specify correct key."}});
   }
@@ -44,7 +44,7 @@ router.get('/:key', function(req, res) {
 /* Get home page. Simple Interface */
 router.get('/simple/:key', function(req, res) {
   if(req.params.key == key) {
-    res.render('simple', { title: 'GPS Wifi Targeting System (GWTS)', user: user_coords, dish: dish_coords});
+    res.render('simple', { title: 'Track Pack - Long Range Wi-Fi', user: user_coords, dish: dish_coords});
   } else {
     res.status(404).render('error', {message: 'Access not Authorized', error: {status:"Incorrect Key Specified",stack:"Please Specify correct key."}});
   }

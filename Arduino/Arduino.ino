@@ -16,6 +16,8 @@
  *	along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define DEBUG true
+
 // Libraries
 //SPI
 	#include "SPI.h"
@@ -27,14 +29,26 @@
 	#include "Servo.h"
 // GY-217 Compass
 	#include "HMC5883L.h"
-// JSON Parser
 
 // Contant Declarations
-#define CW_Switch 2
-#define CCW_Switch 3
 #define USER true
 #define DISH false
-#define key "password1"
+#define KEY "password1"
+
+#define DIRECTION_PIN 12
+#define PWM_PIN 3
+#define BRAKE_PIN 9
+#define CURRENT_PIN 0 //analog
+#define CLOCKWISE false
+#define CCLOCKWISE true
+
+#define SPEED 60 //0-255
+#define NUM_AVG 1
+#define DEGREE_ERROR 8
+
+#define ADJUST_ANGLE 135
+#define NEGATIVE_ADJUST 135
+#define POSITIVE_ADJUST 225
 
 //char server[] = "wifi.gustavemichel.com";
 // int port 80
@@ -62,19 +76,20 @@ double xDegrees, yDegrees, zDegrees;
 
 unsigned long lastConnectionTime = 0;			// last time you connected to the server, in milliseconds
 boolean lastConnected = false;					// state of the connection last time through the main loop
-const unsigned long postingInterval = 6000;		// delay between updates, in milliseconds
+const unsigned long postingInterval = 4000;		// delay between updates, in milliseconds
 
 void setup() {
 	//Start Serial
 	Serial.begin(9600);
 
-	//Start Limit Switches
-	pinMode(13, OUTPUT);
-	digitalWrite(13, LOW);
-	pinMode(CW_Switch, INPUT_PULLUP);
-	pinMode(CCW_Switch, INPUT_PULLUP);
-	attachInterrupt(0, CWSwitch, FALLING);
-	attachInterrupt(1, CCWSwitch, FALLING);
+	//Setup Motor Shield
+	pinMode(DIRECTION_PIN, OUTPUT);
+	digitalWrite(DIRECTION_PIN, CLOCKWISE);
+	pinMode(BRAKE_PIN, OUTPUT);
+	digitalWrite(BRAKE_PIN, LOW);
+	pinMode(PWM_PIN, OUTPUT);
+	analogWrite(PWM_PIN, 0);
+	
 
 	//Start Compass
 	Wire.begin();
@@ -99,37 +114,81 @@ void loop() {
 	//Is not connected and is time to reconnect
 	if((!client.connected()) && (millis() - lastConnectionTime > postingInterval)) {
 		if(httpRequest()) { //success
-			//Set angle
-			readMagnetometer();		//Update Magetometer Values
-			double corrected = 0;
-			if(yDegrees < 270)
-				corrected = yDegrees+90;
-			else {
-				corrected = yDegrees-270;
+			bool con = true;
+			double mag_angle = 0;
+			
+			double target_angle = (atan2(user_coords.lat - dish_coords.lat,user_coords.lon - dish_coords.lon))*(180/M_PI);
+			if(target_angle < 0) {
+				target_angle+=360;
 			}
 
-			double angle = (atan2(user_coords.lat - dish_coords.lat,user_coords.lon - dish_coords.lon))*(180/M_PI);
-			if(angle < 0) {
-				angle+=360;
-			}
-			Serial.print("Mag Angle: ");
-			Serial.println(yDegrees,10);
-			Serial.print("Cor Angle: ");
-			Serial.println(corrected,10);
-			Serial.print("Pos Angle: ");
-			Serial.println(angle,10);
+			do {
+				//Update Magetometer Values
+				mag_angle = 0;
+				for(int i = 0; i < NUM_AVG; i++) { //Average 3 reads
+					readMagnetometer();
+					mag_angle+=yDegrees;
+					delay(20); //don't read too fast?
+				}
+				mag_angle /= NUM_AVG;
+				/*
+				if(mag_angle > ADJUST_ANGLE)
+					mag_angle -= NEGATIVE_ADJUST;
+				else
+					mag_angle += POSITIVE_ADJUST;
+				//*/
+				if(DEBUG) {
+					Serial.print("Mag Angle: ");
+					Serial.println(yDegrees,10);
+					Serial.print("Cor Angle: ");
+					Serial.println(mag_angle,10);
+					Serial.print("Pos Angle: ");
+					Serial.println(target_angle,10);
+					//Serial.println();
+				}
+
+				//*
+				if(DEBUG)
+					Serial.print("Motor: ");
+
+				if(target_angle > mag_angle && (target_angle - mag_angle) > DEGREE_ERROR) {
+					con = true;
+					if(DEBUG)
+						Serial.println("CounterClockwise");
+					digitalWrite(BRAKE_PIN, false);
+					digitalWrite(DIRECTION_PIN, CCLOCKWISE);
+					analogWrite(PWM_PIN, SPEED);
+				} else if(mag_angle > target_angle && (mag_angle - target_angle) > DEGREE_ERROR) {
+					con = true;
+					if(DEBUG)
+						Serial.println("Clockwise");
+					digitalWrite(BRAKE_PIN, false);
+					digitalWrite(DIRECTION_PIN, CLOCKWISE);
+					analogWrite(PWM_PIN, SPEED);
+				} else {
+					con = false;
+					if(DEBUG)
+						Serial.println("Stopped");
+					analogWrite(PWM_PIN, 0);
+					digitalWrite(BRAKE_PIN, true);
+				}
+
+				if(DEBUG) {
+					Serial.print("Current: ");
+					Serial.println(analogRead(CURRENT_PIN));
+				}
+				//*/
+			}while(con);
 		}
 
 	}
-
-	readMagnetometer();		//Update Magetometer Values
-	delay(1000);
 }
 
 
 // this function makes a HTTP connection to the server and parses the json it receives:
 int httpRequest() {
-	Serial.println("connecting...");
+	if(DEBUG)
+		Serial.println("connecting.");
 	if (client.connect(server, port)) { // Successful connection?
 		// note the time that the connection was made:
 		lastConnectionTime = millis();
@@ -141,8 +200,10 @@ int httpRequest() {
 		client.println("Connection: close");
 		client.println();
 	} else { // No connection... :(
-		Serial.println("connection failed");
-		Serial.println("disconnecting.");
+		if(DEBUG) {
+			Serial.println("connection failed.");
+			Serial.println("disconnecting.");
+		}
 		client.stop();
 		return(0);
 	}
@@ -153,11 +214,11 @@ int httpRequest() {
 			client.stop();
 	}
 
-	Serial.println("connecting...");
+	if(DEBUG)
+		Serial.println("connecting.");
 	if (client.connect(server, port)) { // Successful connection?
 		// note the time that the connection was made:
 		lastConnectionTime = millis();
-		Serial.println("connecting...");
 
 		// send the HTTP PUT request:
 		client.println("GET /api/user/password1");
@@ -166,15 +227,18 @@ int httpRequest() {
 		client.println("Connection: close");
 		client.println();
 	} else { // No connection... :(
-		Serial.println("connection failed");
-		Serial.println("disconnecting.");
+		if(DEBUG) {
+			Serial.println("connection failed.");
+			Serial.println("disconnecting.");
+		}
 		client.stop();
 		return(0);
 	}
 	delay(100);
 	if(client.available()) {
 		parseJson(USER); //Parse
-		Serial.println("disconnecting.");
+		if(DEBUG)
+			Serial.println("disconnecting.");
 		client.stop();
 	}
 
@@ -214,6 +278,7 @@ void parseJson(bool user) {
 		user_coords.lon = (double)atof(secondNumber);
 	}
 }
+
 void readMagnetometer() {
 	MagnetometerRaw raw = compass.ReadRawAxis(); //Read Data
 	MagnetometerScaled scaled = compass.ReadScaledAxis(); 
@@ -236,13 +301,4 @@ void readMagnetometer() {
 	xDegrees = xHeading * 180/M_PI; //Convert radians to degrees
 	yDegrees = yHeading * 180/M_PI; 
 	zDegrees = zHeading * 180/M_PI; 
-}
-
-//Direction Switch Functions (To prevent wire tangle)
-void CWSwitch() {
-	digitalWrite(13, HIGH);
-}
-
-void CCWSwitch() {
-	digitalWrite(13, LOW);
 }
