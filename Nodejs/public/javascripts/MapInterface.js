@@ -1,5 +1,3 @@
-var key = "password1";
-
 google.maps.event.addDomListener(window, 'load', function() {
 	var userCoords = new google.maps.LatLng(user.lat,user.lon);
 	var dishCoords = new google.maps.LatLng(dish.lat,dish.lon);

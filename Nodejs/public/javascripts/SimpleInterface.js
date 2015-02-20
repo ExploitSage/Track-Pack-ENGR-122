@@ -1,5 +1,3 @@
-var key = "password1";
-
 var numeric_error = false;
 var last_user;
 var last_dish;

@@ -1,6 +1,7 @@
 /*
  *	Engineering 122 Freshman Design Project Client
- *	Copyright (C) 2014	Gustave Abel Michel III
+ *	Copyright (C) 2014	Gustave Abel Michel III, Joey Higuera, 
+ *	Jordan Lofton, and Nathan Slaughter
  *
  *	This program is free software: you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
@@ -29,6 +30,8 @@
 	#include "Servo.h"
 // GY-217 Compass
 	#include "HMC5883L.h"
+// Watchdog Timeout
+	#include <avr/wdt.h> //WatchDog
 
 // Contant Declarations
 #define USER true
@@ -42,23 +45,23 @@
 #define CLOCKWISE false
 #define CCLOCKWISE true
 
-#define SPEED 60 //0-255
+#define SPEED 85 //0-255
 #define NUM_AVG 1
-#define DEGREE_ERROR 8
+#define DEGREE_ERROR 15
 
-#define ADJUST_ANGLE 135
-#define NEGATIVE_ADJUST 135
-#define POSITIVE_ADJUST 225
+#define ADJUST_ANGLE 55
+#define NEGATIVE_ADJUST 55
+#define POSITIVE_ADJUST 305
 
 //char server[] = "wifi.gustavemichel.com";
-// int port 80
-//char server[] = "gustave.me";
-// int port 4500
-IPAddress server(10,10,10,1);
+//int = port 80;
+char server[] = "gustave.me";
 int port = 4500;
+//IPAddress server(192,168,0,2);
+//int port = 4500;
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }; // 0xDEADBEEFFEED because WHY NOT!
-IPAddress ip(10,10,10,2); //default
+IPAddress ip(192,168,0,3); //default
 
 // Variable/Object Declarations
 struct Coords {
@@ -99,15 +102,17 @@ void setup() {
 
 	// give the ethernet module time to boot up:
 	delay(1000);
+	Serial.println("Start!");
 	// start the Ethernet connection using a fixed IP address:
-//	if (Ethernet.begin(mac) == 0) { //attempt DHCP
+	if (Ethernet.begin(mac) == 0) { //attempt DHCP
 		Serial.println("Failed to configure Ethernet using DHCP");
 		Ethernet.begin(mac, ip);
-//	}
+	}
 	// print the Ethernet board/shield's IP address:
 	Serial.print("My IP address: ");
 	Serial.println(Ethernet.localIP());
 
+	birthWatchdog(WDTO_4S);
 }
 
 void loop() {
@@ -131,7 +136,7 @@ void loop() {
 					delay(20); //don't read too fast?
 				}
 				mag_angle /= NUM_AVG;
-				/*
+				//*
 				if(mag_angle > ADJUST_ANGLE)
 					mag_angle -= NEGATIVE_ADJUST;
 				else
@@ -178,10 +183,15 @@ void loop() {
 					Serial.println(analogRead(CURRENT_PIN));
 				}
 				//*/
+				feedWatchdog();
 			}while(con);
 		}
-
+	} else {
+		if(client.connected()) {
+			client.stop();
+		}
 	}
+	feedWatchdog();
 }
 
 
@@ -302,3 +312,10 @@ void readMagnetometer() {
 	yDegrees = yHeading * 180/M_PI; 
 	zDegrees = zHeading * 180/M_PI; 
 }
+
+void birthWatchdog(uint16_t timeout)
+	{wdt_enable(timeout);}
+void killWatchdog()
+	{wdt_disable();}
+void feedWatchdog()
+	{wdt_reset();}
