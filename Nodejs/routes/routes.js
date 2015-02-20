@@ -5,13 +5,13 @@ var fs = require("fs");
 var key = "password1"; //worst Password EVER
 
 /*
-fs.writeFile( "/json/dish.json", JSON.stringify( {lat:0,lon:0} 
+fs.writeFile( "./json/dish.json", JSON.stringify( {lat:0,lon:0} 
 ), "utf8", function(err) {
   console.log(err);
   if(err) throw err;
   console.log('saved');
 });
-fs.writeFile( "/json/user.json", JSON.stringify( {lat:0,lon:0} 
+fs.writeFile( "./json/user.json", JSON.stringify( {lat:0,lon:0} 
 ), "utf8", function(err) {
   console.log(err);
   if(err) throw err;
@@ -19,8 +19,8 @@ fs.writeFile( "/json/user.json", JSON.stringify( {lat:0,lon:0}
 });
 */
 
-var dish_coords = JSON.parse(fs.readFileSync('/json/dish.json').toString());
-var user_coords = JSON.parse(fs.readFileSync('/json/user.json').toString());
+var dish_coords = JSON.parse(fs.readFileSync('./json/dish.json').toString());
+var user_coords = JSON.parse(fs.readFileSync('./json/user.json').toString());
 console.log(dish_coords);
 console.log(user_coords);
 
@@ -55,12 +55,12 @@ router.get('/api/dish/:key/:lat/:lon', function(req, res) {
 	if(req.params.key == key && (!isNaN(req.params.lat) && !isNaN(req.params.lon))) {
 		dish_coords.lat = Number(req.params.lat);
 		dish_coords.lon = Number(req.params.lon);
-		fs.writeFileSync( "/json/dish.json", JSON.stringify( dish_coords ), "utf8", function(err) {
+		fs.writeFileSync( "./json/dish.json", JSON.stringify( dish_coords ), "utf8", function(err) {
 			console.log(err);
 			if(err) throw err;
 			console.log('saved');
 		});
-		console.log(fs.readFileSync('/json/dish.json').toString());
+		console.log(fs.readFileSync('./json/dish.json').toString());
 		res.send(user_coords);
 	} else {
 		res.send({});
@@ -73,12 +73,12 @@ router.get('/api/user/:key/:gps', function(req, res) {
 		//GPS in format lat,lon, parsed using substring and indexOf
 		user_coords.lat = Number(req.params.gps.substring(0,req.params.gps.indexOf(',')));
 		user_coords.lon = Number(req.params.gps.substring(req.params.gps.indexOf(',')+1));
-		fs.writeFileSync( "/json/user.json", JSON.stringify( user_coords ), "utf8", function(err) {
+		fs.writeFileSync( "./json/user.json", JSON.stringify( user_coords ), "utf8", function(err) {
 			console.log(err);
 			if(err) throw err;
 			console.log('saved');
 		});
-		console.log(fs.readFileSync('/json/user.json').toString());
+		console.log(fs.readFileSync('./json/user.json').toString());
 		res.send(dish_coords);
 	} else {
 		res.send({});
