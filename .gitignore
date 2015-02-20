@@ -5,4 +5,5 @@ stino.settings
 node_modules
 
 #JSON Data files
+json
 *.json
