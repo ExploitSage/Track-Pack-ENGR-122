@@ -14,13 +14,15 @@ google.maps.event.addDomListener(window, 'load', function() {
 		position: userCoords,
 		map: map,
 		draggable:true,
-		title:"User"
+		title:"User",
+		icon:"http://maps.google.com/mapfiles/kml/paddle/blu-stars.png"
 	});
 	dish_marker = new google.maps.Marker({
 		position: dishCoords,
 		map: map,
 		draggable:true,
-		title:"Dish"
+		title:"Dish",
+		icon:"http://maps.google.com/mapfiles/kml/paddle/D.png"
 	});
 
 	//Drag Adjust Events
